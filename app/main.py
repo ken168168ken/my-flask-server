@@ -11,7 +11,6 @@ if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
 if not st.session_state.logged_in:
-    # 切圓形 Logo
     try:
         raw = Image.open("logo.png").convert("RGBA")
         w, h = raw.size
@@ -108,8 +107,7 @@ if run:
         s, l = params["ma_s"], params["ma_l"]
         df["MA_s"] = df["Close"].rolling(s).mean()
         df["MA_l"] = df["Close"].rolling(l).mean()
-        cross = (df["MA_s"] > df["MA_l"]) & (df["MA_s"].shift() <= df["MA_l"].shift())
-        signals["均線"] = cross
+        signals["均線"] = (df["MA_s"] > df["MA_l"]) & (df["MA_s"].shift() <= df["MA_l"].shift())
 
     # MACD 交叉
     if "MACD" in indicators:
@@ -118,8 +116,7 @@ if run:
         df["EMA_s"] = df["Close"].ewm(span=slow).mean()
         df["MACD"]  = df["EMA_f"] - df["EMA_s"]
         df["DEA"]   = df["MACD"].ewm(span=sig).mean()
-        macd_cross = (df["MACD"] > df["DEA"]) & (df["MACD"].shift() <= df["DEA"].shift())
-        signals["MACD"] = macd_cross
+        signals["MACD"] = (df["MACD"] > df["DEA"]) & (df["MACD"].shift() <= df["DEA"].shift())
 
     # KDJ
     if "KDJ" in indicators:
@@ -129,72 +126,69 @@ if run:
         rsv    = (df["Close"] - low_n) / (high_n - low_n) * 100
         df["K"] = rsv.ewm(alpha=1/k_s).mean()
         df["D"] = df["K"].ewm(alpha=1/d_s).mean()
-        kd_cross = (df["K"] > df["D"]) & (df["K"].shift() <= df["D"].shift())
-        signals["KDJ"] = kd_cross
+        signals["KDJ"] = (df["K"] > df["D"]) & (df["K"].shift() <= df["D"].shift())
 
-    # M 頭（極值偵測）
+    # M 頭
     if "M頭" in indicators:
         win = params["m_win"]
-        peaks = df["High"].rolling(win, center=True).apply(
+        signals["M頭"] = df["High"].rolling(win, center=True).apply(
             lambda x: x[win//2] == x.max(), raw=True
         ).astype(bool)
-        signals["M頭"] = peaks
 
     # W 底
     if "W底" in indicators:
         win = params["w_win"]
-        bottoms = df["Low"].rolling(win, center=True).apply(
+        signals["W底"] = df["Low"].rolling(win, center=True).apply(
             lambda x: x[win//2] == x.min(), raw=True
         ).astype(bool)
-        signals["W底"] = bottoms
 
     # 布林通道
     if "布林通道" in indicators:
         n, k = params["bb_n"], params["bb_k"]
         ma = df["Close"].rolling(n).mean()
         sd = df["Close"].rolling(n).std()
-        upper = ma + k * sd
         lower = ma - k * sd
-        bb_buy = (df["Close"] > lower) & (df["Close"].shift() <= lower.shift())
-        signals["布林通道"] = bb_buy
+        signals["布林通道"] = (df["Close"] > lower) & (df["Close"].shift() <= lower.shift())
 
-    # --- 多指標合成訊號：全選指標當日同時為 True ---
+    # 合成訊號
     signals["合成"] = pd.concat([signals[ind] for ind in indicators], axis=1).all(axis=1)
 
-    # --- 勝率示意（隨機範例）---
+    # --- 勝率示意 ---
     st.markdown("**各指標勝率（示意）**")
-    rates = {}
-    for ind in indicators:
-        rates[ind] = np.random.randint(55, 90)
-        st.markdown(f"- {ind} 勝率：{rates[ind]}%")
+    rates = {ind: np.random.randint(55, 90) for ind in indicators}
+    for ind, r in rates.items():
+        st.markdown(f"- {ind} 勝率：{r}%")
     if len(indicators) > 1:
         comp = int(np.mean(list(rates.values())))
         st.markdown(f"- 多指標合成勝率：{comp}%")
 
-    # --- 繪圖：收盤 + 各指標進場 + 合成進場 ---
+    # --- 繪圖 ---
     plt.rcParams["font.family"] = ["sans-serif"]
     plt.rcParams["axes.unicode_minus"] = False
     fig, ax = plt.subplots(figsize=(12,5))
     ax.plot(df.index, df["Close"], label="收盤價", color="#1f77b4")
 
-    marks = {
-        "均線":   ("o", "#ff7f0e"),
-        "MACD":   ("^", "#2ca02c"),
-        "KDJ":    ("s", "#d62728"),
-        "M頭":    ("v", "#9467bd"),
-        "W底":    ("P", "#8c564b"),
-        "布林通道":("*", "#e377c2"),
-        "合成":   ("X", "#7f7f7f"),
+    markers = {
+        "均線":   ("o","#ff7f0e"),
+        "MACD":   ("^","#2ca02c"),
+        "KDJ":    ("s","#d62728"),
+        "M頭":    ("v","#9467bd"),
+        "W底":    ("P","#8c564b"),
+        "布林通道":("*","#e377c2"),
+        "合成":   ("X","#000000"),
     }
+
     for ind in indicators:
-        pts = df.index[signals[ind]]
-        ax.scatter(pts, df.loc[pts,"Close"], 
-                   marker=marks[ind][0], color=marks[ind][1],
+        # 先用布林索引取子集，再拿 index
+        pts = df.loc[signals[ind]].index
+        ax.scatter(pts, df.loc[pts, "Close"],
+                   marker=markers[ind][0], color=markers[ind][1],
                    label=f"{ind} 進場", s=60)
+
     # 合成
-    pts = df.index[signals["合成"]]
-    ax.scatter(pts, df.loc[pts,"Close"], 
-               marker=marks["合成"][0], color=marks["合成"][1],
+    pts = df.loc[signals["合成"]].index
+    ax.scatter(pts, df.loc[pts, "Close"],
+               marker=markers["合成"][0], color=markers["合成"][1],
                label="合成 進場", s=80)
 
     ax.set_title("📈 真實股價走勢與進場訊號")
