@@ -6,18 +6,20 @@ import yfinance as yf
 from PIL import Image, ImageDraw
 import matplotlib.pyplot as plt
 
+# ───────────────────────────────
 # 1. 一定要最先呼叫
 st.set_page_config(page_title="K 技術分析平台", page_icon="logo.png", layout="wide")
 
-# 2. Session state 初始化
+# 2. session_state 初始化
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 if "GITHUB_USER" not in st.session_state:
     st.session_state.GITHUB_USER = ""
 
-# 3. 登入流程
+# ───────────────────────────────
+# 3. 登入流程（不再用 experimental_rerun）
 if not st.session_state.logged_in:
-    # 做一個圓形 logo
+    # 圓形 logo
     try:
         raw = Image.open("logo.png").convert("RGBA")
         w, h = raw.size
@@ -33,18 +35,17 @@ if not st.session_state.logged_in:
         user_in = st.text_input("帳號", "")
         pwd_in  = st.text_input("密碼 (任意填)", type="password")
         ok = st.form_submit_button("登入")
-    if ok:
-        env_user = os.getenv("GITHUB_USER", "")
-        if user_in and user_in == env_user:
-            st.session_state.logged_in = True
-            st.session_state.GITHUB_USER = env_user
-            st.success("登入成功，正在重新整理…")
-            st.experimental_rerun()
-        else:
-            st.error("登入失敗，請檢查帳號或環境變數")
+        if ok:
+            env_user = os.getenv("GITHUB_USER", "")
+            if user_in and user_in == env_user:
+                st.session_state.logged_in = True
+            else:
+                st.error("登入失敗，請檢查帳號或環境變數")
+
     st.stop()
 
-# 4. 主頁 Header
+# ───────────────────────────────
+# 4. 已登入後主畫面 Header
 col1, col2 = st.columns([1, 9])
 with col1:
     try:
@@ -60,12 +61,13 @@ with col2:
 st.title("K 技術分析平台")
 st.write("---")
 
-# 5. 查詢條件
+# ───────────────────────────────
+# 5. 查詢條件：回測年限改為 1–3 年
 st.subheader("✅ 查詢條件")
 ticker = st.text_input("🔍 股票代碼 (例：2330.TW 或 AAPL)", "").upper().strip()
 inds   = st.multiselect("📊 選擇技術指標",
                         ["均線","MACD","KDJ","M頭","W底","布林通道"])
-years  = st.slider("⏳ 回測年限 (年)", 1, 5, 1)
+years  = st.slider("⏳ 回測年限 (年)", 1, 3, 1)  # 改成最多 3 年
 run    = st.button("▶ 執行分析")
 
 if run:
@@ -79,8 +81,11 @@ if run:
         st.error("無法取得該股票資料")
         st.stop()
 
-    # 生成 signals
-    signals = {ind: pd.Series(False, index=df.index) for ind in inds}
+    # 產生 signals
+    signals = {}
+    for ind in inds:
+        signals[ind] = pd.Series(False, index=df.index)
+
     # M 頭
     if "M頭" in inds:
         win = st.number_input("M 頭 window", 5, 30, 10, key="m_head")
@@ -89,6 +94,7 @@ if run:
                .apply(lambda x: x[win//2]==x.max(), raw=True)
                .astype(bool)
         )
+
     # W 底
     if "W底" in inds:
         win = st.number_input("W 底 window", 5, 30, 10, key="w_walk")
@@ -97,6 +103,7 @@ if run:
               .apply(lambda x: x[win//2]==x.min(), raw=True)
               .astype(bool)
         )
+
     # 布林通道
     if "布林通道" in inds:
         n = st.number_input("BB period", 5, 60, 20, key="bb_n")
@@ -108,17 +115,16 @@ if run:
 
     # 多指標合成
     if len(inds) > 1:
-        signals["合成"] = pd.concat([signals[i] for i in inds], axis=1).all(axis=1)
+        combined = pd.concat([signals[i] for i in inds], axis=1).all(axis=1)
+        signals["合成"] = combined
 
-    # 文字勝率示意
+    # 顯示勝率（示意）
     st.markdown("**各指標勝率（示意）**")
-    rates = {i: np.random.randint(55, 90) for i in inds}
+    rates = {i: np.random.randint(55, 90) for i in signals}
     for i, r in rates.items():
         st.markdown(f"- {i} 勝率：{r}%")
-    if "合成" in signals:
-        st.markdown(f"- 多指標合成勝率：{int(np.mean(list(rates.values())))}%")
 
-    # 畫圖
+    # 價格走勢 & 進場點
     st.subheader("📈 Price & Entry Signals")
     fig, ax = plt.subplots(figsize=(12, 5))
     ax.plot(df.index, df["Close"], label="Close Price")
@@ -131,14 +137,15 @@ if run:
         "布林通道":("*","pink"),
         "合成":("X","black"),
     }
-    # 空 scatter for legend
-    for ind in signals.keys():
+
+    # 先畫空的 scatter 以便 legend
+    for ind in signals:
         ax.scatter([], [], marker=markers[ind][0],
                    color=markers[ind][1], label=ind)
 
-    # 真正進場點
+    # 真正的進場點
     for ind, ser in signals.items():
-        idx = df.loc[ser].index
+        idx = ser[ser].index  # 這裡保證 ser 一定是 Series
         ax.scatter(idx, df.loc[idx, "Close"],
                    marker=markers[ind][0],
                    color=markers[ind][1], s=80)
@@ -146,4 +153,6 @@ if run:
     ax.set_xlabel("Date")
     ax.set_ylabel("Price")
     ax.legend(loc="upper left")
-    st.pyplot(fig)
+
+    # 這行讓圖表能正確顯示
+    st.pyplot(fig, use_container_width=True)
