@@ -1,2 +1,3 @@
-# my-flask-server
-My Flask server for stocks
+# K 技術分析平台
+
+技術指標查詢與回測模組
