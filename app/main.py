@@ -9,7 +9,6 @@ import datetime
 # ---------- LOGO 顯示 ----------
 
 LOGO\_URL = "[https://github.com/ken168168ken/my-flask-server/blob/main/logo.png?raw=true](https://github.com/ken168168ken/my-flask-server/blob/main/logo.png?raw=true)"
-st.image(LOGO\_URL, width=60)
 
 # ---------- 登入功能 ----------
 
@@ -17,17 +16,17 @@ if "logged\_in" not in st.session\_state:
 st.session\_state.logged\_in = False
 
 if not st.session\_state.logged\_in:
+st.image(LOGO\_URL, width=80)
 st.markdown("""
 \## 🔐 K 技術分析平台 登入
 """)
-st.image(LOGO\_URL, width=80)
 username = st.text\_input("帳號", value="")
 password = st.text\_input("密碼（任意填）", type="password")
 if st.button("登入"):
 if username:
 st.session\_state.logged\_in = True
 st.session\_state.username = username
-st.experimental\_rerun()
+st.rerun()
 else:
 st.error("請輸入帳號")
 st.stop()
@@ -35,7 +34,7 @@ st.stop()
 # ---------- 已登入主畫面 ----------
 
 st.image(LOGO\_URL, width=60)
-st.markdown(f"已登入：\:green")
+st.markdown(f"已登入：`{st.session_state.username}`")
 st.title("📈 K 技術分析平台")
 st.caption("這是一個整合技術指標、回測模組、股票數據分析的平台。")
 
@@ -160,7 +159,6 @@ if "M頭" in indicators:
     signals['M-Head'] = signal
     markers['M-Head'] = ('X', 'black')
 
-# ---------- 畫圖 ----------
 for name, signal in signals.items():
     st.markdown(f"### 📈 價格與{name} 進出場圖")
     fig, ax = plt.subplots(figsize=(10, 4))
@@ -174,13 +172,11 @@ for name, signal in signals.items():
     ax.legend(loc="upper left")
     st.pyplot(fig)
 
-# ---------- 勝率統計 ----------
 st.subheader("📊 各指標勝率")
 for name, signal in signals.items():
     rate = round(signal.mean() * 100, 2)
     st.write(f"• {name} 勝率：{rate}%")
 
-# ---------- 複合指標 ----------
 if len(signals) >= 2:
     combined = pd.DataFrame(signals).all(axis=1)
     rate = round(combined.mean() * 100, 2)
