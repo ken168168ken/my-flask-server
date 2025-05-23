@@ -8,7 +8,7 @@ import datetime
 
 # ---------- LOGO 顯示 ----------
 
-LOGO\_URL = "[https://github.com/ken168168ken/my-flask-server/blob/main/logo.png?raw=true](https://github.com/ken168168ken/my-flask-server/blob/main/logo.png?raw=true)"
+LOGO_URL = "https://github.com/ken168168ken/my-flask-server/raw/main/logo.png"
 
 # ---------- 登入功能 ----------
 
