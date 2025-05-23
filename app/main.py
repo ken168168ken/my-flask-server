@@ -1,6 +1,3 @@
-# 主程式 main.py
-
-python
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -27,7 +24,7 @@ if not st.session_state.logged_in:
             st.experimental_rerun()
         else:
             st.error("請輸入帳號")
-    st.stop()
+            st.stop()
 
 # ---------- 主畫面 Header ----------
 st.image(LOGO_URL, width=60)
@@ -40,7 +37,6 @@ ticker = st.text_input("📊 股票代碼 (例如：2330.TW 或 AAPL)", "TSLA")
 period_years = st.slider("🧭 回測年限 (年)", 1, 3, 1)
 end = datetime.datetime.now()
 start = end - datetime.timedelta(days=365 * period_years)
-
 data = yf.download(ticker, start=start, end=end)
 
 # ---------- 技術指標選擇 ----------
@@ -198,4 +194,3 @@ if st.button("🚀 執行分析"):
         ax.set_ylabel("Price")
         ax.legend()
         st.pyplot(fig)
-
