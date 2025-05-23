@@ -8,7 +8,7 @@ import datetime
 
 # ---------- LOGO 顯示 ----------
 
-LOGO_URL = "https://github.com/ken168168ken/my-flask-server/raw/main/logo.png"
+LOGO\_URL = "[https://github.com/ken168168ken/my-flask-server/raw/main/logo.png](https://github.com/ken168168ken/my-flask-server/raw/main/logo.png)"
 
 # ---------- 登入功能 ----------
 
@@ -26,7 +26,7 @@ if st.button("登入"):
 if username:
 st.session\_state.logged\_in = True
 st.session\_state.username = username
-st.rerun()
+st.experimental\_rerun()
 else:
 st.error("請輸入帳號")
 st.stop()
@@ -49,16 +49,13 @@ data = yf.download(ticker, start=start, end=end)
 # ---------- 技術指標選擇 ----------
 
 st.subheader("📌 選擇技術指標")
-indicators = st.multiselect(
-"選擇技術指標",
-\["均線", "MACD", "KDJ", "M頭", "W底", "布林通道"]
-)
+indicators = st.multiselect("選擇技術指標", \["均線", "MACD", "KDJ", "M頭", "W底", "布林通道"])
 
 # ---------- 參數設定 ----------
 
 st.markdown("### 均線 SMA")
-sma\_short = st.number\_input("SMA 短期 window", min\_value=2, max\_value=100, value=10)
-sma\_long = st.number\_input("SMA 長期 window", min\_value=5, max\_value=200, value=50)
+sma\_short = st.number\_input("SMA 短期 window", 2, 100, 10)
+sma\_long = st.number\_input("SMA 長期 window", 5, 200, 50)
 sma\_cross = st.checkbox("顯示 SMA 金叉死叉點")
 
 st.markdown("### MACD")
