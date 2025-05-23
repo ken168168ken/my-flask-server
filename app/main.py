@@ -27,7 +27,7 @@ if st.button("登入"):
 if username:
 st.session\_state.logged\_in = True
 st.session\_state.username = username
-st.rerun()
+st.experimental\_rerun()
 else:
 st.error("請輸入帳號")
 st.stop()
@@ -81,7 +81,7 @@ boll\_k = st.number\_input("布林通道寬度 k (倍數)", 1.0, 3.0, 2.0)
 def calculate\_sma(df, short, long):
 sma\_s = df\['Close'].rolling(window=short).mean()
 sma\_l = df\['Close'].rolling(window=long).mean()
-signal = (sma\_s > sma\_l) & (sma\_s.shift(1) <= sma\_l.shift(1))  # 金叉
+signal = (sma\_s > sma\_l) & (sma\_s.shift(1) <= sma\_l.shift(1))
 return signal
 
 def calculate\_macd(df, fast, slow, signal):
@@ -160,9 +160,9 @@ if "M頭" in indicators:
     signals['M-Head'] = signal
     markers['M-Head'] = ('X', 'black')
 
-# ---------- 各圖個別畫圖 ----------
+# ---------- 畫圖 ----------
 for name, signal in signals.items():
-    st.markdown(f"### 📈 價格與 {name} 進出場圖")
+    st.markdown(f"### 📈 價格與{name} 進出場圖")
     fig, ax = plt.subplots(figsize=(10, 4))
     ax.plot(data.index, data['Close'], label="Close Price", linewidth=1)
     if signal.any():
@@ -180,20 +180,17 @@ for name, signal in signals.items():
     rate = round(signal.mean() * 100, 2)
     st.write(f"• {name} 勝率：{rate}%")
 
+# ---------- 複合指標 ----------
 if len(signals) >= 2:
-    st.subheader("📊 複合指標勝率")
-    combined = pd.Series(True, index=data.index)
-    for sig in signals.values():
-        combined &= sig
+    combined = pd.DataFrame(signals).all(axis=1)
     rate = round(combined.mean() * 100, 2)
-    st.write(f"• Combined 勝率：{rate}%")
-
-    st.markdown("### 📈 價格與 Combined 進出場圖")
+    st.write(f"• ✅ 複合指標勝率：{rate}%")
+    st.markdown("### 📈 價格與複合指標進出場圖")
     fig, ax = plt.subplots(figsize=(10, 4))
     ax.plot(data.index, data['Close'], label="Close Price", linewidth=1)
     if combined.any():
         pts = combined[combined].index
-        ax.scatter(pts, data.loc[pts, 'Close'], marker='*', color='orange', label='Combined', s=100)
+        ax.scatter(pts, data.loc[pts, 'Close'], marker='*', color='gold', label="Combined", s=100)
     ax.set_xlabel("Date")
     ax.set_ylabel("Price")
     ax.legend(loc="upper left")
