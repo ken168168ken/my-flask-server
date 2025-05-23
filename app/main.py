@@ -12,111 +12,111 @@ LOGO_URL = "[https://github.com/ken168168ken/my-flask-server/raw/main/logo.png](
 
 # ---------- 登入功能 ----------
 
-if "logged\_in" not in st.session\_state:
-st.session\_state.logged\_in = False
+if "logged_in" not in st.session_state:
+st.session_state.logged_in = False
 
-if not st.session\_state.logged\_in:
-st.image(LOGO\_URL, width=80)
+if not st.session_state.logged_in:
+st.image(LOGO_URL, width=80)
 st.markdown("""
 \## 🔐 K 技術分析平台 登入
 """)
-username = st.text\_input("帳號", value="")
-password = st.text\_input("密碼（任意填）", type="password")
+username = st.text_input("帳號", value="")
+password = st.text_input("密碼（任意填）", type="password")
 if st.button("登入"):
 if username:
-st.session\_state.logged\_in = True
-st.session\_state.username = username
-st.experimental\_rerun()
+st.session_state.logged_in = True
+st.session_state.username = username
+st.experimental_rerun()
 else:
 st.error("請輸入帳號")
 st.stop()
 
 # ---------- 已登入主畫面 ----------
 
-st.image(LOGO\_URL, width=60)
+st.image(LOGO_URL, width=60)
 st.markdown(f"已登入：`{st.session_state.username}`")
 st.title("📈 K 技術分析平台")
 st.caption("這是一個整合技術指標、回測模組、股票數據分析的平台。")
 
 # ---------- 使用者輸入區 ----------
 
-ticker = st.text\_input("📊 股票代碼 (例如：2330.TW 或 AAPL)", value="TSLA")
-period\_years = st.slider("🧭 回測年限 (年)", 1, 3, 1)
+ticker = st.text_input("📊 股票代碼 (例如：2330.TW 或 AAPL)", value="TSLA")
+period_years = st.slider("🧭 回測年限 (年)", 1, 3, 1)
 end = datetime.datetime.now()
-start = end - datetime.timedelta(days=365 \* period\_years)
+start = end - datetime.timedelta(days=365 * period_years)
 data = yf.download(ticker, start=start, end=end)
 
 # ---------- 技術指標選擇 ----------
 
 st.subheader("📌 選擇技術指標")
-indicators = st.multiselect("選擇技術指標", \["均線", "MACD", "KDJ", "M頭", "W底", "布林通道"])
+indicators = st.multiselect("選擇技術指標", ["均線", "MACD", "KDJ", "M頭", "W底", "布林通道"])
 
 # ---------- 參數設定 ----------
 
 st.markdown("### 均線 SMA")
-sma\_short = st.number\_input("SMA 短期 window", 2, 100, 10)
-sma\_long = st.number\_input("SMA 長期 window", 5, 200, 50)
-sma\_cross = st.checkbox("顯示 SMA 金叉死叉點")
+sma_short = st.number_input("SMA 短期 window", 2, 100, 10)
+sma_long = st.number_input("SMA 長期 window", 5, 200, 50)
+sma_cross = st.checkbox("顯示 SMA 金叉死叉點")
 
 st.markdown("### MACD")
-macd\_fast = st.number\_input("MACD 快線 span", 1, 50, 12)
-macd\_slow = st.number\_input("MACD 慢線 span", 1, 50, 26)
-macd\_signal = st.number\_input("MACD 信號線 span", 1, 20, 9)
+macd_fast = st.number_input("MACD 快線 span", 1, 50, 12)
+macd_slow = st.number_input("MACD 慢線 span", 1, 50, 26)
+macd_signal = st.number_input("MACD 信號線 span", 1, 20, 9)
 
 st.markdown("### KDJ")
-kdj\_n = st.number\_input("KDJ 計算期間", 2, 50, 14)
-kdj\_k = st.number\_input("KDJ K平滑", 1, 20, 3)
-kdj\_d = st.number\_input("KDJ D平滑", 1, 20, 3)
+kdj_n = st.number_input("KDJ 計算期間", 2, 50, 14)
+kdj_k = st.number_input("KDJ K平滑", 1, 20, 3)
+kdj_d = st.number_input("KDJ D平滑", 1, 20, 3)
 
 st.markdown("### 布林通道")
-boll\_period = st.number\_input("布林通道期間 (Period)", 5, 60, 20)
-boll\_k = st.number\_input("布林通道寬度 k (倍數)", 1.0, 3.0, 2.0)
+boll_period = st.number_input("布林通道期間 (Period)", 5, 60, 20)
+boll_k = st.number_input("布林通道寬度 k (倍數)", 1.0, 3.0, 2.0)
 
 # ---------- 技術指標函數 ----------
 
-def calculate\_sma(df, short, long):
-sma\_s = df\['Close'].rolling(window=short).mean()
-sma\_l = df\['Close'].rolling(window=long).mean()
-signal = (sma\_s > sma\_l) & (sma\_s.shift(1) <= sma\_l.shift(1))
+def calculate_sma(df, short, long):
+sma_s = df['Close'].rolling(window=short).mean()
+sma_l = df['Close'].rolling(window=long).mean()
+signal = (sma_s > sma_l) & (sma_s.shift(1) <= sma_l.shift(1))
 return signal
 
-def calculate\_macd(df, fast, slow, signal):
-ema\_fast = df\['Close'].ewm(span=fast, adjust=False).mean()
-ema\_slow = df\['Close'].ewm(span=slow, adjust=False).mean()
-macd = ema\_fast - ema\_slow
-macd\_signal = macd.ewm(span=signal, adjust=False).mean()
-signal = (macd > macd\_signal) & (macd.shift(1) <= macd\_signal.shift(1))
+def calculate_macd(df, fast, slow, signal):
+ema_fast = df['Close'].ewm(span=fast, adjust=False).mean()
+ema_slow = df['Close'].ewm(span=slow, adjust=False).mean()
+macd = ema_fast - ema_slow
+macd_signal = macd.ewm(span=signal, adjust=False).mean()
+signal = (macd > macd_signal) & (macd.shift(1) <= macd_signal.shift(1))
 return signal
 
-def calculate\_kdj(df, n, k\_smooth, d\_smooth):
-low\_min = df\['Low'].rolling(n).min()
-high\_max = df\['High'].rolling(n).max()
-rsv = 100 \* (df\['Close'] - low\_min) / (high\_max - low\_min)
-k = rsv.ewm(com=k\_smooth).mean()
-d = k.ewm(com=d\_smooth).mean()
+def calculate_kdj(df, n, k_smooth, d_smooth):
+low_min = df['Low'].rolling(n).min()
+high_max = df['High'].rolling(n).max()
+rsv = 100 * (df['Close'] - low_min) / (high_max - low_min)
+k = rsv.ewm(com=k_smooth).mean()
+d = k.ewm(com=d_smooth).mean()
 signal = (k > d) & (k.shift(1) <= d.shift(1))
 return signal
 
-def calculate\_bollinger(df, period, k):
-mid = df\['Close'].rolling(window=period).mean()
-std = df\['Close'].rolling(window=period).std()
-upper = mid + k \* std
-lower = mid - k \* std
-signal = (df\['Close'] < lower) | (df\['Close'] > upper)
+def calculate_bollinger(df, period, k):
+mid = df['Close'].rolling(window=period).mean()
+std = df['Close'].rolling(window=period).std()
+upper = mid + k * std
+lower = mid - k * std
+signal = (df['Close'] < lower) | (df['Close'] > upper)
 return signal
 
-def calculate\_w\_pattern(df):
+def calculate_w_pattern(df):
 signal = pd.Series(False, index=df.index)
 for i in range(2, len(df) - 2):
-if df\['Close']\[i-2] > df\['Close']\[i-1] < df\['Close']\[i] > df\['Close']\[i+1] < df\['Close']\[i+2]:
-signal.iloc\[i] = True
+if df['Close'][i-2] > df['Close'][i-1] < df['Close'][i] > df['Close'][i+1] < df['Close'][i+2]:
+signal.iloc[i] = True
 return signal
 
-def calculate\_m\_pattern(df):
+def calculate_m_pattern(df):
 signal = pd.Series(False, index=df.index)
 for i in range(2, len(df) - 2):
-if df\['Close']\[i-2] < df\['Close']\[i-1] > df\['Close']\[i] < df\['Close']\[i+1] > df\['Close']\[i+2]:
-signal.iloc\[i] = True
+if df['Close'][i-2] < df['Close'][i-1] > df['Close'][i] < df['Close'][i+1] > df['Close'][i+2]:
+signal.iloc[i] = True
 return signal
 
 # ---------- 執行分析 ----------
