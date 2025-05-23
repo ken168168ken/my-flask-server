@@ -195,7 +195,7 @@ if st.button("🚀 執行分析"):
         ax.set_ylabel("Price")
         ax.legend(loc="upper left")
         st.pyplot(fig)
-```
+
 
 import streamlit as st import pandas as pd import matplotlib.pyplot as plt import yfinance as yf import datetime
 
