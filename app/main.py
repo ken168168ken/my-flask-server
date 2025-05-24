@@ -4,16 +4,27 @@ import matplotlib.pyplot as plt
 import yfinance as yf
 import datetime
 
-# ---------- LOGO 顯示 ----------
+# ---------- LOGO 設定 ----------
 LOGO_URL = "https://raw.githubusercontent.com/ken168168ken/my-flask-server/main/logo.png"
 
-# ---------- 登入狀態初始化 ----------
+# ---------- Session 狀態初始化 ----------
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
+if "username" not in st.session_state:
+    st.session_state.username = ""
 
-# ---------- 登入頁面 ----------
+def show_logo(width=100):
+    st.markdown(
+        f"""
+        <div style='display:flex; justify-content:center;'>
+            <img src="{LOGO_URL}" width="{width}" style="border-radius:50%;border:0px solid #fff;">
+        </div>
+        """, unsafe_allow_html=True
+    )
+
+# ---------- 登入頁 ----------
 if not st.session_state.logged_in:
-    st.image(LOGO_URL, width=80)
+    show_logo(110)
     st.markdown("## 🔐 K 技術分析平台 登入")
     username = st.text_input("帳號", "")
     password = st.text_input("密碼（任意填）", type="password")
@@ -24,15 +35,15 @@ if not st.session_state.logged_in:
             st.experimental_rerun()
         else:
             st.error("請輸入帳號")
-            st.stop()
+    st.stop()
 
-# ---------- 主畫面 Header ----------
-st.image(LOGO_URL, width=60)
+# ---------- 主頁 Header ----------
+show_logo(80)
 st.markdown(f"已登入：`{st.session_state.username}`")
 st.title("📈 K 技術分析平台")
 st.caption("這是一個整合技術指標、回測模組、股票數據分析的平台。")
 
-# ---------- 使用者輸入區 ----------
+# ---------- 使用者輸入 ----------
 ticker = st.text_input("📊 股票代碼 (例如：2330.TW 或 AAPL)", "TSLA")
 period_years = st.slider("🧭 回測年限 (年)", 1, 3, 1)
 end = datetime.datetime.now()
@@ -41,32 +52,41 @@ data = yf.download(ticker, start=start, end=end)
 
 # ---------- 技術指標選擇 ----------
 st.subheader("📌 選擇技術指標")
-indicators = st.multiselect(
-    "選擇技術指標",
-    ["均線", "MACD", "KDJ", "M頭", "W底", "布林通道"]
-)
+indicators = st.multiselect("選擇技術指標", ["均線", "MACD", "KDJ", "M頭", "W底", "布林通道"])
 
-# ---------- 參數設定 ----------
-st.markdown("### 均線 SMA")
-sma_short = st.number_input("SMA 短期 window", 2, 100, 10)
-sma_long  = st.number_input("SMA 長期 window", 5, 200, 50)
-sma_cross = st.checkbox("顯示 SMA 金叉/死叉點")
+# ---------- 依據指標顯示參數 ----------
+if "均線" in indicators:
+    st.markdown("### 均線 SMA")
+    sma_short = st.number_input("SMA 短期 window", 2, 100, 10)
+    sma_long = st.number_input("SMA 長期 window", 5, 200, 50)
+    sma_cross = st.checkbox("顯示 SMA 金叉/死叉點")
+else:
+    sma_short, sma_long, sma_cross = None, None, None
 
-st.markdown("### MACD")
-macd_fast   = st.number_input("MACD 快線 span", 1, 50, 12)
-macd_slow   = st.number_input("MACD 慢線 span", 1, 50, 26)
-macd_signal = st.number_input("MACD 信號線 span", 1, 20, 9)
+if "MACD" in indicators:
+    st.markdown("### MACD")
+    macd_fast = st.number_input("MACD 快線 span", 1, 50, 12)
+    macd_slow = st.number_input("MACD 慢線 span", 1, 50, 26)
+    macd_signal = st.number_input("MACD 信號線 span", 1, 20, 9)
+else:
+    macd_fast, macd_slow, macd_signal = None, None, None
 
-st.markdown("### KDJ")
-kdj_n = st.number_input("KDJ 計算期間", 2, 50, 14)
-kdj_k = st.number_input("KDJ K 平滑", 1, 20, 3)
-kdj_d = st.number_input("KDJ D 平滑", 1, 20, 3)
+if "KDJ" in indicators:
+    st.markdown("### KDJ")
+    kdj_n = st.number_input("KDJ 計算期間", 2, 50, 14)
+    kdj_k = st.number_input("KDJ K 平滑", 1, 20, 3)
+    kdj_d = st.number_input("KDJ D 平滑", 1, 20, 3)
+else:
+    kdj_n, kdj_k, kdj_d = None, None, None
 
-st.markdown("### 布林通道")
-boll_period = st.number_input("布林通道期間 (Period)", 5, 60, 20)
-boll_k      = st.number_input("布林通道寬度 k (倍數)", 1.0, 3.0, 2.0)
+if "布林通道" in indicators:
+    st.markdown("### 布林通道")
+    boll_period = st.number_input("布林通道期間 (Period)", 5, 60, 20)
+    boll_k = st.number_input("布林通道寬度 k (倍數)", 1.0, 3.0, 2.0)
+else:
+    boll_period, boll_k = None, None
 
-# ---------- 指標計算函數 ----------
+# ---------- 指標計算 ----------
 def calculate_sma(df, short, long):
     s = df['Close'].rolling(short).mean()
     l = df['Close'].rolling(long).mean()
@@ -94,8 +114,8 @@ def calculate_kdj(df, n, k_smooth, d_smooth):
     return cross, death
 
 def calculate_bollinger(df, period, k):
-    mid   = df['Close'].rolling(period).mean()
-    std   = df['Close'].rolling(period).std()
+    mid = df['Close'].rolling(period).mean()
+    std = df['Close'].rolling(period).std()
     lower = mid - k * std
     upper = mid + k * std
     cross = df['Close'] < lower
@@ -117,43 +137,43 @@ def calculate_m_pattern(df):
     return cross
 
 # ---------- 執行分析 ----------
-if st.button("🚀 執行分析"):
+if st.button("🚀 執行分析") and len(indicators) > 0:
     results = {}
     markers = {}
-
+    # 均線
     if "均線" in indicators:
         c, d = calculate_sma(data, sma_short, sma_long)
         results['SMA Cross'] = c
         results['SMA Death'] = d
         markers['SMA Cross'] = ('o', 'red')
         markers['SMA Death'] = ('x', 'black')
-
+    # MACD
     if "MACD" in indicators:
         c, d = calculate_macd(data, macd_fast, macd_slow, macd_signal)
         results['MACD Cross'] = c
         results['MACD Death'] = d
         markers['MACD Cross'] = ('v', 'purple')
         markers['MACD Death'] = ('^', 'green')
-
+    # KDJ
     if "KDJ" in indicators:
         c, d = calculate_kdj(data, kdj_n, kdj_k, kdj_d)
         results['KDJ Cross'] = c
         results['KDJ Death'] = d
         markers['KDJ Cross'] = ('^', 'blue')
         markers['KDJ Death'] = ('s', 'orange')
-
+    # 布林
     if "布林通道" in indicators:
         c, d = calculate_bollinger(data, boll_period, boll_k)
         results['Bollinger Lower'] = c
         results['Bollinger Upper'] = d
         markers['Bollinger Lower'] = ('D', 'magenta')
         markers['Bollinger Upper'] = ('D', 'cyan')
-
+    # W底
     if "W底" in indicators:
         c = calculate_w_pattern(data)
         results['W-Bottom'] = c
         markers['W-Bottom'] = ('*', 'blue')
-
+    # M頭
     if "M頭" in indicators:
         c = calculate_m_pattern(data)
         results['M-Head'] = c
@@ -164,7 +184,7 @@ if st.button("🚀 執行分析"):
         st.markdown(f"### 📈 {name} 進出場圖")
         fig, ax = plt.subplots(figsize=(10,4))
         ax.plot(data.index, data['Close'], label="Close Price")
-        if series.any():
+        if series is not None and not series.empty and series.any():
             pts = series[series].index
             m, col = markers[name]
             ax.scatter(pts, data.loc[pts,'Close'], marker=m, color=col, label=name, s=80)
@@ -187,10 +207,12 @@ if st.button("🚀 執行分析"):
         st.markdown("### 📈 複合指標進出場圖")
         fig, ax = plt.subplots(figsize=(10,4))
         ax.plot(data.index, data['Close'], label="Close Price")
-        if combined.any():
+        if combined is not None and not combined.empty and combined.any():
             pts = combined[combined].index
             ax.scatter(pts, data.loc[pts,'Close'], marker='*', color='gold', label="Combined", s=100)
         ax.set_xlabel("Date")
         ax.set_ylabel("Price")
         ax.legend()
         st.pyplot(fig)
+else:
+    st.info("請至少選擇一個技術指標後再執行分析。")
