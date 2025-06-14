@@ -1,7 +1,5 @@
-streamlit
-pandas
-numpy
-pillow
-matplotlib
-yfinance
-fastapi
+flask==2.0.1
+pandas==1.3.3
+numpy==1.21.2
+yfinance==0.1.63
+schedule==1.1.0
