@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>多市場分析系統</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding-top: 2rem;
+        }
+        .card {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+        .form-control:focus {
+            border-color: #80bdff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+        .market-section {
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            border-left: 4px solid;
+        }
+        .market-section.us-stocks { border-color: #007bff; }
+        .market-section.tw-stocks { border-color: #28a745; }
+        .market-section.tw-otc { border-color: #fd7e14; }
+        .market-section.etfs { border-color: #6f42c1; }
+        .market-section.commodities { border-color: #ffc107; }
+        .market-section.forex { border-color: #17a2b8; }
+        .market-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 0.5rem;
+        }
+        .market-list li {
+            padding: 0.5rem;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+        }
+        .market-list li:hover {
+            background-color: #e9ecef;
+        }
+        .market-icon {
+            margin-right: 0.5rem;
+            font-size: 1.2rem;
+        }
+        .symbol-description {
+            color: #6c757d;
+            font-size: 0.9rem;
+            margin-left: 0.5rem;
+        }
+        .market-header {
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+        }
+        .symbol-count {
+            margin-left: auto;
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center mb-4">多市場分析系統</h1>
+        
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="card-title mb-0">市場分析</h5>
+                    </div>
+                    <div class="card-body">
+                        <form action="/analyze" method="post" class="mb-4">
+                            <div class="row">
+                                <div class="col-md-5">
+                                    <label for="start_date" class="form-label">開始日期</label>
+                                    <input type="date" class="form-control" id="start_date" name="start_date" required>
+                                </div>
+                                <div class="col-md-5">
+                                    <label for="end_date" class="form-label">結束日期</label>
+                                    <input type="date" class="form-control" id="end_date" name="end_date" required>
+                                </div>
+                                <div class="col-md-2 d-flex align-items-end">
+                                    <button type="submit" class="btn btn-primary w-100">開始分析</button>
+                                </div>
+                            </div>
+                        </form>
+
+                        <h5 class="mb-3">分析標的列表</h5>
+                        
+                        <div class="market-section us-stocks">
+                            <div class="market-header">
+                                <h6><span class="market-icon">🇺🇸</span>標普500成份股</h6>
+                                <span class="symbol-count">36檔標的</span>
+                            </div>
+                            <ul class="market-list">
+                                <li>AAPL <span class="symbol-description">蘋果公司</span></li>
+                                <li>MSFT <span class="symbol-description">微軟</span></li>
+                                <li>AMZN <span class="symbol-description">亞馬遜</span></li>
+                                <li>NVDA <span class="symbol-description">輝達</span></li>
+                                <li>GOOGL <span class="symbol-description">Alphabet</span></li>
+                                <li>META <span class="symbol-description">Meta平台</span></li>
+                                <li>BRK-B <span class="symbol-description">波克夏</span></li>
+                                <li>XOM <span class="symbol-description">埃克森美孚</span></li>
+                                <li>UNH <span class="symbol-description">聯合健康</span></li>
+                                <li>JNJ <span class="symbol-description">嬌生</span></li>
+                                <li>JPM <span class="symbol-description">摩根大通</span></li>
+                                <li>V <span class="symbol-description">VISA</span></li>
+                            </ul>
+                        </div>
+
+                        <div class="market-section tw-stocks">
+                            <div class="market-header">
+                                <h6><span class="market-icon">🇹🇼</span>台股上市</h6>
+                                <span class="symbol-count">30檔標的</span>
+                            </div>
+                            <ul class="market-list">
+                                <li>2330.TW <span class="symbol-description">台積電</span></li>
+                                <li>2317.TW <span class="symbol-description">鴻海</span></li>
+                                <li>2454.TW <span class="symbol-description">聯發科</span></li>
+                                <li>2412.TW <span class="symbol-description">中華電</span></li>
+                                <li>2308.TW <span class="symbol-description">台達電</span></li>
+                                <li>2303.TW <span class="symbol-description">聯電</span></li>
+                                <li>2881.TW <span class="symbol-description">富邦金</span></li>
+                                <li>2882.TW <span class="symbol-description">國泰金</span></li>
+                                <li>2002.TW <span class="symbol-description">中鋼</span></li>
+                                <li>1301.TW <span class="symbol-description">台塑</span></li>
+                                <li>2891.TW <span class="symbol-description">中信金</span></li>
+                                <li>3711.TW <span class="symbol-description">日月光投控</span></li>
+                            </ul>
+                        </div>
+
+                        <div class="market-section tw-otc">
+                            <div class="market-header">
+                                <h6><span class="market-icon">🇹🇼</span>台股上櫃</h6>
+                                <span class="symbol-count">20檔標的</span>
+                            </div>
+                            <ul class="market-list">
+                                <li>6488.TWO <span class="symbol-description">環球晶</span></li>
+                                <li>3105.TWO <span class="symbol-description">穩懋</span></li>
+                                <li>4743.TWO <span class="symbol-description">合一</span></li>
+                                <li>3293.TWO <span class="symbol-description">鈊象</span></li>
+                                <li>4966.TWO <span class="symbol-description">譜瑞-KY</span></li>
+                                <li>3227.TWO <span class="symbol-description">原相</span></li>
+                                <li>6121.TWO <span class="symbol-description">新普</span></li>
+                                <li>4123.TWO <span class="symbol-description">晟德</span></li>
+                            </ul>
+                        </div>
+
+                        <div class="market-section etfs">
+                            <div class="market-header">
+                                <h6><span class="market-icon">📊</span>ETF市場</h6>
+                                <span class="symbol-count">19檔標的</span>
+                            </div>
+                            <ul class="market-list">
+                                <li>SPY <span class="symbol-description">S&P 500指數ETF</span></li>
+                                <li>QQQ <span class="symbol-description">納斯達克100指數ETF</span></li>
+                                <li>VTI <span class="symbol-description">道瓊全市場ETF</span></li>
+                                <li>0050.TW <span class="symbol-description">元大台灣50</span></li>
+                                <li>0056.TW <span class="symbol-description">元大高股息</span></li>
+                                <li>00878.TW <span class="symbol-description">國泰永續高股息</span></li>
+                                <li>00919.TW <span class="symbol-description">群益台灣精選高息</span></li>
+                                <li>00929.TW <span class="symbol-description">復華台灣科技優息</span></li>
+                            </ul>
+                        </div>
+
+                        <div class="market-section commodities">
+                            <div class="market-header">
+                                <h6><span class="market-icon">💰</span>商品期貨</h6>
+                                <span class="symbol-count">3檔標的</span>
+                            </div>
+                            <ul class="market-list">
+                                <li>GC=F <span class="symbol-description">黃金期貨</span></li>
+                                <li>SI=F <span class="symbol-description">白銀期貨</span></li>
+                                <li>CL=F <span class="symbol-description">原油期貨</span></li>
+                            </ul>
+                        </div>
+
+                        <div class="market-section forex">
+                            <div class="market-header">
+                                <h6><span class="market-icon">💱</span>外匯市場</h6>
+                                <span class="symbol-count">4檔標的</span>
+                            </div>
+                            <ul class="market-list">
+                                <li>EURUSD=X <span class="symbol-description">歐元/美元</span></li>
+                                <li>USDJPY=X <span class="symbol-description">美元/日圓</span></li>
+                                <li>GBPUSD=X <span class="symbol-description">英鎊/美元</span></li>
+                                <li>AUDUSD=X <span class="symbol-description">澳元/美元</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="card-title mb-0">訂閱每日分析</h5>
+                    </div>
+                    <div class="card-body">
+                        <form action="/subscribe" method="post">
+                            <div class="mb-3">
+                                <label for="email" class="form-label">電子郵件</label>
+                                <input type="email" class="form-control" id="email" name="email" required 
+                                       placeholder="輸入您的電子郵件地址">
+                            </div>
+                            <button type="submit" class="btn btn-success w-100">訂閱分析報告</button>
+                        </form>
+                        <div class="mt-3">
+                            <small class="text-muted">
+                                訂閱後，您將在每日早上7點和下午3點收到所有市場的技術分析報告，包括：
+                                <ul class="mt-2">
+                                    <li>股票、ETF價格趨勢</li>
+                                    <li>商品期貨走勢分析</li>
+                                    <li>外匯市場即時訊號</li>
+                                    <li>RSI超買超賣提醒</li>
+                                    <li>形態突破預警</li>
+                                </ul>
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 設置日期輸入框的預設值
+        document.addEventListener('DOMContentLoaded', function() {
+            const today = new Date();
+            const oneMonthAgo = new Date(today);
+            oneMonthAgo.setMonth(today.getMonth() - 1);
+            
+            document.getElementById('start_date').value = oneMonthAgo.toISOString().split('T')[0];
+            document.getElementById('end_date').value = today.toISOString().split('T')[0];
+        });
+    </script>
+</body>
+</html>
