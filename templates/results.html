@@ -1,0 +1,21 @@
+市場分析結果
+返回首頁 
+{% if results %} {# 按市場類型分組結果 #} {% set markets = {} %} {% for result in results %} {% if result.market_type not in markets %} {% set _ = markets.update({result.market_type: []}) %} {% endif %} {% set _ = markets[result.market_type].append(result) %} {% endfor %} {% for market_type, market_results in markets.items() %}
+{% if market_type == 'US_SP500' %} 🇺🇸 標普500成份股 36檔標的 {% elif market_type == 'TW_LISTED' %} 🇹🇼 台股上市 30檔標的 {% elif market_type == 'TW_OTC' %} 🇹🇼 台股上櫃 20檔標的 {% elif market_type == 'ETFs' %} 📊 ETF市場 19檔標的 {% elif market_type == 'COMMODITIES' %} 💰 商品期貨 3檔標的 {% elif market_type == 'FOREX' %} 💱 外匯市場 4檔標的 {% else %} 🌐 其他市場 {% endif %} 
+{% for result in market_results %}
+{{ result.symbol }}
+{% if result.signals %}
+{% for signal in result.signals %}
+{{ signal.type }}
+日期： {{ signal.date }} 
+價格： {{ signal.price }} 
+RSI： {{ signal.rsi }} 
+{% if 'Bullish' in signal.type or 'Bottom' in signal.type %} 🔺 看漲信號 {% else %} 🔻 看跌信號 {% endif %} 
+{% endfor %} 
+{% else %}
+在選定的時間範圍內沒有找到符合條件的交易信號。
+{% endif %} 
+{% endfor %} 
+{% endfor %} {% else %}
+無法獲取任何市場的分析結果，請稍後再試。 
+{% endif %} 
